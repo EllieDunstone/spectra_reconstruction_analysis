@@ -59,7 +59,7 @@ nsamp <- nrow(mutation_catalogue)  # number of samples
 
 We now want to assess the quality of the reconstruction for each sample. This is done by calculating the cosine similarity between the observed mutation spectrum, and the reconstructed spectrum generated under our model. 
 
-```{r calculate cosine sim per sample}
+```{r calculate cosine sim and total mut count per sample}
 
 #extract array from rds reconstructions object - 3 dimensions not preserved during export/inport (though this may be possible? idk)
 reconstructions <- recons_all_obj$reconstructions
@@ -71,17 +71,57 @@ reconstructions <- recons_all_obj$reconstructions
 counts <- mutation_catalogue
 
 #init cosine sim dataframe
-cossim_table <- as.data.frame(matrix(data = NA, nrow = nsamp, ncol = 2))
-colnames(cossim_table) <- c("sample", "recon_cossim")
+cossim_table <- as.data.frame(matrix(data = NA, nrow = nsamp, ncol = 3))
+colnames(cossim_table) <- c("sample", "recon_cossim", "total_mut_count")
 
-#calculate cosine sims and populate table
+#calculate cosine sims and total mutation counts, and populate table
 for (i in 1:nsamp) {
   cossim_table$sample[i] <- rownames(counts)[i]
   cossim_table$recon_cossim[i] <- cosine_sim(counts[i,], colSums(reconstructions[i, , ]))
+  cossim_table$total_mut_count[i] <- rowSums(counts)[i]
 }
 
 #output table
 write.csv(cossim_table, "/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/reconstruction_cossim_table.csv")
 
+```
+
+
+## Plotting reconstruction cosine similarity distribution
+
+We can now plot the distribution of the reconstruction cosine similarities to assess the fit of the model at a per-sample level.
+
+```{r plot recon cossims}
+hist(cossim_table$recon_cossim, xlab = "Cosine similarity between reconstruction and original spectrum")
+
+ggplot(cossim_table, aes(x = "", y = recon_cossim)) +
+  geom_violin() +
+  theme_classic()
+```
+
+We can also plot the reconstruction cosine similarity according to the total raw mutation number in each sample. This is useful as one explanation for poor reconstruction quality for a particular sample is low raw mutation number.
+
+```{r plot recon cossim vs. total mut count}
+#create scatterplot of reconstruction cossim vs. total mut count for each sample
+cossim_v_mut_count_plot <- ggplot(cossim_table, aes(total_mut_count, recon_cossim)) + 
+  geom_point() +
+  theme_classic()
+
+#create same plot with log10 x axis - useful if you have a big range of total muts
+cossim_v_mut_count_plot_log <- cossim_v_mut_count_plot + scale_x_log10()
+
+#display plots
+cossim_v_mut_count_plot / cossim_v_mut_count_plot_log 
+```
+
+We can also attempt to linearise this relationship by transforming the data. Here I have used the reciprocal of mutation count, but this may not work for other datasets and please check your own work if you start trying to fit a linear model.
+
+```{r plot recon cossim vs. total mut count linearized}
+#attempt to linearise by plotting against 1/total_mut_count
+cossim_v_mut_count_plot_transform <- ggplot(cossim_table, aes(1/total_mut_count, recon_cossim)) + 
+  geom_point() +
+  theme_classic()
+
+cossim_v_mut_count_plot_transform
 ```
 
