@@ -22,16 +22,58 @@ This is a script for analysing and exploring the quality of the spectrum reconst
 
 Sigfit allows us to examine how effectively the estimated signatures and/or exposures can reconstruct the original mutational catalogues by producing spectrum reconstruction plots with the 'plot_reconstruction' function. The underlying data can be accessed using the 'get_reconstructions' function, which provides the input data for this script. Some of the content of this script is adapted from the 'plot_reconstruction' function written by the authors of sigfit.
 
-```{r cars}
-summary(cars)
+
+## Read in data
+
+First, we read in the reconstruction data. Currently not clear which format will be best, so am reading in the .rds object output by get_reconstructions, and also the three individual tables that this object is comprised of.
+
+```{r read in reconstruction data}
+#read reconstructions table
+recons <- as.matrix(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions.csv"))[,-1]
+
+#read reconstructions hpd table
+recon_hpds <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_hpds.csv"))
+
+#read reconstructions exposures table
+recon_exposures <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_exposures.csv"))
+
+#read in whole object as rds in case this is easier?
+recons_all_obj <- readRDS("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions.rds")
 ```
 
-## Including Plots
+We also need the original mutation catalogue used to generate the solution - this describes the sample spectra that we are trying to reconstruct using our model. This should be in the format used by sigfit (i.e. a numeric matrix
+with one row per sample and one column per mutation type).
 
-You can also embed plots, for example:
+```{r read in mutation catalogue}
+#read in catalogue in sigfit format
+mutation_catalogue <- as.matrix(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/data/sigfit_mutation_catalogue.csv", row.names = 1))
+colnames(mutation_catalogue) <- str_replace(colnames(mutation_catalogue), "\\.", ">") #Note: this line is only needed because exporting and reimporting the catalogue causes the "<" in the mutation types to be replaced with "." and I want to switch this back
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+#assign number of mut categories and samples
+ncat <- ncol(mutation_catalogue)   # number of categories
+nsamp <- nrow(mutation_catalogue)  # number of samples
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Calculating cosine similarities
+
+We now want to assess the quality of the reconstruction for each sample. This is done by calculating the cosine similarity between the observed mutation spectrum, and the reconstructed spectrum generated under our model. 
+
+```{r calculate cosine sim per sample}
+
+#i am pretty sure that 'reconstructions' is the right table for the variable of the same name used for cossim calculation in plot_recons, but will have to check results to confirm 
+
+#need to make sure am matching correct samples definitely - again can check results
+
+
+#get mutation counts from catalogue
+counts <- mutation_catalogue
+            
+            
+for (i in 1:nsamp) {
+  print(cosine_sim(counts[i,], colSums(recons[i, , ])))
+}
+
+
+```
+
