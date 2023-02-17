@@ -1,5 +1,6 @@
 # Spectra reconstruction analysis
 
+NOTE: literally none of this is currently working, this is very much work-in-progress right now!
 
 ## Introduction
 
