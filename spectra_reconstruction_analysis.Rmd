@@ -80,6 +80,8 @@ for (i in 1:nsamp) {
   cossim_table$recon_cossim[i] <- cosine_sim(counts[i,], colSums(reconstructions[i, , ]))
 }
 
+#output table
+write.csv(cossim_table, "/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/reconstruction_cossim_table.csv")
 
 ```
 
