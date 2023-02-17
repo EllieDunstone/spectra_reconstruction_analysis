@@ -61,17 +61,23 @@ We now want to assess the quality of the reconstruction for each sample. This is
 
 ```{r calculate cosine sim per sample}
 
-#i am pretty sure that 'reconstructions' is the right table for the variable of the same name used for cossim calculation in plot_recons, but will have to check results to confirm 
+#extract array from rds reconstructions object - 3 dimensions not preserved during export/inport (though this may be possible? idk)
+reconstructions <- recons_all_obj$reconstructions
 
 #need to make sure am matching correct samples definitely - again can check results
 
 
 #get mutation counts from catalogue
 counts <- mutation_catalogue
-            
-            
+
+#init cosine sim dataframe
+cossim_table <- as.data.frame(matrix(data = NA, nrow = nsamp, ncol = 2))
+colnames(cossim_table) <- c("sample", "recon_cossim")
+
+#calculate cosine sims and populate table
 for (i in 1:nsamp) {
-  print(cosine_sim(counts[i,], colSums(recons[i, , ])))
+  cossim_table$sample[i] <- rownames(counts)[i]
+  cossim_table$recon_cossim[i] <- cosine_sim(counts[i,], colSums(reconstructions[i, , ]))
 }
 
 
