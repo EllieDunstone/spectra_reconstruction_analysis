@@ -13,12 +13,13 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(patchwork)
 library(sigfit)
+library(ggrepel)
 ```
 
 
 ## Introduction
 
-This is a script for analysing and exploring the quality of the spectrum reconstructions generated during signature extraction or fitting using sigfit, which can be installed from <https://github.com/kgori/sigfit>. Reconstructions of your samples under the 'model' you have calculated can be produced for all three modalities implemented in sigfit: reference signature fitting; de novo signature extraction; and combined fitting and extraction (FitExt). For further explanation, see the vignettes on the sigfit github, or my own 'sigfit_signature_analysis.Rmd' script that implements the sigfit package.
+This is a script for analysing and exploring the quality of the spectrum reconstructions generated during signature extraction or fitting using sigfit, which can be installed from <https://github.com/kgori/sigfit>. Reconstructions of your samples under the 'model' you have calculated can be produced for all three modalities implemented in sigfit: reference signature fitting; de novo signature extraction; and combined fitting and extraction (FitExt). For further explanation, see the vignettes on the sigfit github, or my own 'sigfit_signature_analysis.Rmd' script that implements the sigfit package (not yet on GitHub, contact me if you want it).
 
 Sigfit allows us to examine how effectively the estimated signatures and/or exposures can reconstruct the original mutational catalogues by producing spectrum reconstruction plots with the 'plot_reconstruction' function. The underlying data can be accessed using the 'get_reconstructions' function, which provides the input data for this script. Some of the content of this script is adapted from the 'plot_reconstruction' function written by the authors of sigfit.
 
@@ -37,7 +38,7 @@ recon_hpds <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/Bot
 #read reconstructions exposures table
 recon_exposures <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_exposures.csv"))
 
-#read in whole object as rds in case this is easier?
+#read in whole object as rds
 recons_all_obj <- readRDS("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions.rds")
 ```
 
@@ -61,11 +62,10 @@ We now want to assess the quality of the reconstruction for each sample. This is
 
 ```{r calculate cosine sim and total mut count per sample}
 
-#extract array from rds reconstructions object - 3 dimensions not preserved during export/inport (though this may be possible? idk)
+#extract array from rds reconstructions object - 3 dimensions not easy to read back in due to flattening during export/import as individual item (though this may be possible? idk)
 reconstructions <- recons_all_obj$reconstructions
 
-#need to make sure am matching correct samples definitely - again can check results
-
+#NB//// need to make sure am matching correct samples definitely -  can check results
 
 #get mutation counts from catalogue
 counts <- mutation_catalogue
@@ -92,14 +92,20 @@ write.csv(cossim_table, "/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/p
 We can now plot the distribution of the reconstruction cosine similarities to assess the fit of the model at a per-sample level.
 
 ```{r plot recon cossims}
-hist(cossim_table$recon_cossim, xlab = "Cosine similarity between reconstruction and original spectrum")
+#Plot recon cossims as histogram
+cossim_hist <- hist(cossim_table$recon_cossim, xlab = "Cosine similarity between reconstruction and original spectrum")
 
-ggplot(cossim_table, aes(x = "", y = recon_cossim)) +
+cossim_hist
+
+#Plot recon cossims as violin plot
+cossim_violin <- ggplot(cossim_table, aes(x = "", y = recon_cossim)) +
   geom_violin() +
   theme_classic()
+
+cossim_violin
 ```
 
-We can also plot the reconstruction cosine similarity according to the total raw mutation number in each sample. This is useful as one explanation for poor reconstruction quality for a particular sample is low raw mutation number.
+We can also plot the reconstruction cosine similarity according to the total raw mutation number in each sample. This is useful, as one explanation for poor reconstruction quality for a particular sample is low raw mutation number.
 
 ```{r plot recon cossim vs. total mut count}
 #create scatterplot of reconstruction cossim vs. total mut count for each sample
@@ -124,4 +130,16 @@ cossim_v_mut_count_plot_transform <- ggplot(cossim_table, aes(1/total_mut_count,
 
 cossim_v_mut_count_plot_transform
 ```
+
+## Visual identification of outliers
+
+I'll go back and probably do something about the above (potentially involving regression?) at some point, but for now realistically I just want to label the points so I can identify which samples are the obvious outliers.
+
+```{r log plot outliers label}
+#replot the plot from above with added labels to visually ID outliers
+cossim_v_mut_count_plot_log +
+  geom_text_repel(aes(label=sample), size=2)
+```
+
+We can now see the names of the samples with lower reconstruction cosine similarity than other samples in the dataset with the same number of total mutations. This can help to identify samples where the current model may be lacking, and an unaccounted-for mutational process may be present. You can either go and look at these reconstructions yourself if you have the whole lot plotted already, or use the code below to take a look at the reconstructions for specific samples you are interested in.
 

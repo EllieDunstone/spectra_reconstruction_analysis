@@ -24,6 +24,7 @@ The scripts load the following libraries, which will need to be installed prior 
 * tidyverse
 * patchwork
 * sigfit (see <https://github.com/kgori/sigfit>)
+* ggrepel
 
 ## Usage
 
