@@ -143,3 +143,20 @@ cossim_v_mut_count_plot_log +
 
 We can now see the names of the samples with lower reconstruction cosine similarity than other samples in the dataset with the same number of total mutations. This can help to identify samples where the current model may be lacking, and an unaccounted-for mutational process may be present. You can either go and look at these reconstructions yourself if you have the whole lot plotted already, or use the code below to take a look at the reconstructions for specific samples you are interested in.
 
+
+## Inspect poorly-reconstructed samples
+
+We can now look at any samples that show poor reconstruction given their mutation number. 
+
+First, we want to input a list of the sample names we are interested in. At some point this could also be adapted to optionally ID the outliers from the plot above automatically, but at the moment it needs manual input.
+
+```{r input custom sample list}
+sample_list_inspect <- c("PD43727b_ds0005", "PD43727b_ds0006", "PD56386b_ds0002", "PD56385b_ds0004")
+```
+
+We can now plot the reconstructions for these samples:
+
+```{r}
+
+```
+
