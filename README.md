@@ -1,7 +1,5 @@
 # Spectra reconstruction analysis
 
-NOTE: No promises on which parts of this are currently working, this is very much work-in-progress right now!
-
 ## Introduction
 
 This repo contains code for analysing and exploring the quality of the spectrum reconstructions generated during signature extraction or fitting using sigfit, which can be installed from <https://github.com/kgori/sigfit>. Reconstructions of your samples under the 'model' you have calculated can be produced for all three modalities implemented in sigfit: reference signature fitting; de novo signature extraction; and combined fitting and extraction (FitExt). For further explanation, see the vignettes on the sigfit github, or my own 'sigfit_signature_analysis.Rmd' script that implements the sigfit package.
@@ -13,8 +11,7 @@ Sigfit allows us to examine how effectively the estimated signatures and/or expo
 
 The spectra_reconstruction_analysis.Rmd script can be used to perform this analysis interactively on your own data, or as a vignette to demonstrate how the analysis works.
 
-?Add description of stand-alone functions if i add script for these
-?Add description of example data once added
+The directory 'example_data' contains the inputs used in the .Rmd script.
 
 
 ## Dependencies
@@ -33,4 +30,4 @@ See the spectra_reconstruction_analysis.Rmd script or its .html output for furth
 
 ## Acknowledgments
 
-Parts of this code are adapted from the original sigfit package written by Adrian Baez-Ortega and Kevin Gori <https://github.com/kgori/sigfit>. These scripts were written for the downstream analysis of data generated using this package.
+Parts of this code are adapted from or use functions from the original sigfit package written by Adrian Baez-Ortega and Kevin Gori <https://github.com/kgori/sigfit>. These scripts were written for the downstream analysis of data generated using this package.

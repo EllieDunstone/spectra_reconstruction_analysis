@@ -26,17 +26,17 @@ Sigfit allows us to examine how effectively the estimated signatures and/or expo
 
 ## Read in data
 
-First, we read in the reconstruction data. Currently not clear which format will be best, so am reading in the .rds object output by get_reconstructions, and also the three individual tables that this object is comprised of.
+First, we read in the reconstruction data. You should read in the .rds object output by get_reconstructions, and can also read this data in as the three individual tables that this object is comprised of. Depending on exactly what you do downstream you might not need all of these - choose your own adventure.
 
 ```{r read in reconstruction data}
 #read reconstructions table
 recons <- as.matrix(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions.csv"))[,-1]
 
 #read reconstructions hpd table
-recon_hpds <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_hpds.csv"))
+recon_hpds <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_hpds.csv"))[,-1]
 
 #read reconstructions exposures table
-recon_exposures <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_exposures.csv"))
+recon_exposures <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_exposures.csv"))[,-1]
 
 #read in whole object as rds
 recons_all_obj <- readRDS("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions.rds")
@@ -133,7 +133,7 @@ cossim_v_mut_count_plot_transform
 
 ## Visual identification of outliers
 
-I'll go back and probably do something about the above (potentially involving regression?) at some point, but for now realistically I just want to label the points so I can identify which samples are the obvious outliers.
+I'll go back and probably do something about the above (potentially involving regression?) at some point, but for now realistically I just want to label the points so I can visually identify which samples are the obvious outliers.
 
 ```{r log plot outliers label}
 #replot the plot from above with added labels to visually ID outliers
@@ -154,9 +154,27 @@ First, we want to input a list of the sample names we are interested in. At some
 sample_list_inspect <- c("PD43727b_ds0005", "PD43727b_ds0006", "PD56386b_ds0002", "PD56385b_ds0004")
 ```
 
+In order to plot the reconstructions, we also need the signatures used in this solution:
+
+```{r read in signatures}
+signatures <- read.csv2("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_signatures.csv", sep = ",", row.names = 1)
+signatures[] <- lapply(signatures, as.numeric)
+```
+
 We can now plot the reconstructions for these samples:
 
-```{r}
+```{r plot recons for list, fig.width=10, fig.height=12}
+
+#plot the reconstruction inline and to file for each sample in your list to query
+for (i in sample_list_inspect) {
+  print(paste0("Plotting reconstruction for sample ", i, "..."))
+  n <- which(rownames(counts) == i)
+  counts_n <- counts[n,]
+  exposures_n <- recon_exposures[n,]
+  plot_reconstruction(counts = counts_n, signatures = signatures, exposures = exposures_n, legend_cex = 0.1) # plot inline, not displaying nicely currently
+  plot_reconstruction(counts = counts_n, signatures = signatures, exposures = exposures_n, pdf_path = paste0("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/", i, "_reconstruction_plot.pdf")) # output to pdf to view properly
+}
 
 ```
 
+You can inspect these plots to attempt to identify why the reconstruction may be poor here. In this case, there is clearly an individual peak that is unaccounted for in this fitting of COSMIC signatures, which suggests that a method incorporating de novo extraction may be beneficial for this dataset.
