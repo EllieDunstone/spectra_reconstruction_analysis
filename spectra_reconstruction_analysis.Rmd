@@ -30,16 +30,16 @@ First, we read in the reconstruction data. You should read in the .rds object ou
 
 ```{r read in reconstruction data}
 #read reconstructions table
-recons <- as.matrix(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions.csv"))[,-1]
+recons <- as.matrix(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/WP4/KCL_organoid_work/wp4_2530_20230127/extractions/wp4_2530_20230306_SF_COSMIC_fit_ID83/ref_fit_0.1_hpd_reconstructions.csv"))[,-1]
 
 #read reconstructions hpd table
-recon_hpds <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_hpds.csv"))[,-1]
+recon_hpds <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/WP4/KCL_organoid_work/wp4_2530_20230127/extractions/wp4_2530_20230306_SF_COSMIC_fit_ID83/ref_fit_0.1_hpd_reconstructions_hpds.csv"))[,-1]
 
 #read reconstructions exposures table
-recon_exposures <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions_exposures.csv"))[,-1]
+recon_exposures <- as.data.frame(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/WP4/KCL_organoid_work/wp4_2530_20230127/extractions/wp4_2530_20230306_SF_COSMIC_fit_ID83/ref_fit_0.1_hpd_reconstructions_exposures.csv"))[,-1]
 
 #read in whole object as rds
-recons_all_obj <- readRDS("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/ref_fit_hpd_0.01_reconstructions.rds")
+recons_all_obj <- readRDS("/Users/ed4/Documents/phd/chemo_project/BotSeq/WP4/KCL_organoid_work/wp4_2530_20230127/extractions/wp4_2530_20230306_SF_COSMIC_fit_ID83/ref_fit_0.1_hpd_0.01_reconstructions.rds")
 ```
 
 We also need the original mutation catalogue used to generate the solution - this describes the sample spectra that we are trying to reconstruct using our model. This should be in the format used by sigfit (i.e. a numeric matrix
@@ -47,12 +47,22 @@ with one row per sample and one column per mutation type).
 
 ```{r read in mutation catalogue}
 #read in catalogue in sigfit format
-mutation_catalogue <- as.matrix(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/data/sigfit_mutation_catalogue.csv", row.names = 1))
-colnames(mutation_catalogue) <- str_replace(colnames(mutation_catalogue), "\\.", ">") #Note: this line is only needed because exporting and reimporting the catalogue causes the "<" in the mutation types to be replaced with "." and I want to switch this back
+mutation_catalogue <- as.matrix(read.csv("/Users/ed4/Documents/phd/chemo_project/BotSeq/WP4/KCL_organoid_work/wp4_2530_20230127/data/sigfit_mutation_catalogue_indels.csv", row.names = 1))
 
 #assign number of mut categories and samples
 ncat <- ncol(mutation_catalogue)   # number of categories
 nsamp <- nrow(mutation_catalogue)  # number of samples
+
+#Deal with formatting changes caused by export and import
+if (ncat == 83) {
+  colnames(mutation_catalogue) <- str_replace_all(colnames(mutation_catalogue), "\\.", ":") 
+  colnames(mutation_catalogue) <- str_remove(colnames(mutation_catalogue), "^X")
+} else {
+  if (ncat == 96 | ncat == 78) {
+    colnames(mutation_catalogue) <- str_replace(colnames(mutation_catalogue), "\\.", ">")
+  }
+}
+
 ```
 
 
@@ -82,7 +92,7 @@ for (i in 1:nsamp) {
 }
 
 #output table
-write.csv(cossim_table, "/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230217_panbody_2745_SF_COSMIC_fit_SBS96_reconstruction_analysis_test/reconstruction_cossim_table.csv")
+write.csv(cossim_table, "/Users/ed4/Documents/phd/chemo_project/BotSeq/panbody/panbody_20230106/extractions/20230303_panbody_2745_SF_COSMIC_fit_DBS78/reconstruction_cossim_table.csv")
 
 ```
 
